@@ -4,24 +4,17 @@ import inspect
 import sys
 
 
-def _find_test_functions():
-    current_module = sys.modules["__main__"]
-
-    all_members = inspect.getmembers(current_module, inspect.isfunction)
-
-    test_functions = []
-    for name, func in all_members:
-        if name.startswith("test_"):
-            test_functions.append(func)
-
-    return test_functions
+def _find_test_functions(module):
+    funcs = []
+    for name, obj in inspect.getmembers(module, inspect.isfunction):
+        if name.startswith("test_") and obj.__module__ == module.__name__:
+            funcs.append(obj)
+    return funcs
 
 
-def _find_test_classes():
-    module = sys.modules["__main__"]
+def _find_test_classes(module):
     classes = []
     for name, obj in inspect.getmembers(module, inspect.isclass):
-
         if name.startswith("Test") and obj.__module__ == module.__name__:
             classes.append(obj)
     return classes
