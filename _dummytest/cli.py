@@ -1,0 +1,52 @@
+"""Core implementation of the cli for dummytest."""
+
+import argparse
+
+from ._version import __version__
+
+
+def _cli_parser():
+    temp_parser = argparse.ArgumentParser(add_help=False)
+    temp_parser.add_argument("--no-color", action="store_true")
+    args_partial, _ = temp_parser.parse_known_args()
+
+    use_color = not args_partial.no_color
+
+    parser = argparse.ArgumentParser(
+        prog="dummytest",
+        description="dummytest: Plugins, fixtures, workflows, unit and functional tests with Python.",
+        color=use_color
+    )
+
+    parser.add_argument(
+        "--config", "-c",
+        help="The config file."
+    )    
+
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"dummytest {__version__}",
+        help="Show version and exit."
+    )
+
+    parser.add_argument(
+        "--no-color",
+        action="store_true",
+        help="Suppress colored output."
+    )
+
+    parser.add_argument(
+        "--test-dir", "-t",
+        help="Specify test directory (default: tests)"
+    )
+
+    args = parser.parse_args()
+
+    if not args.config:
+        args.config = "errortest.ini"
+    
+    if not args.test_dir:
+        args.test_dir = "tests"
+    
+    return args

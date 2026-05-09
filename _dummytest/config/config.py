@@ -1,0 +1,45 @@
+"""Read config files."""
+
+import pathlib
+import configparser as cp
+
+from _dummytest.cli import _cli_parser
+
+
+_config = cp.ConfigParser()
+_CWD = pathlib.Path.cwd()
+_DEFAULT_CONFIG_FILE = "errortest.ini"
+_SECTION = "section"
+_config.read(_CWD)
+
+_CONFIG_DEFAULTS = {
+    "no_color": {"type": bool, "default": False},
+}
+
+
+def init_config(config_path=None):
+    if not config_path:
+        config_path = _CWD / _DEFAULT_CONFIG_FILE
+    _config.read(config_path)
+
+
+
+def _read_bool_config(name):
+    try:
+        return _config.getboolean(_SECTION, name)
+    except (cp.NoSectionError, cp.NoOptionError, KeyError):
+        return _CONFIG_DEFAULTS[name]["default"]
+
+
+def _read_int_config(name):
+    try:
+        return _config.getint(_SECTION, name)
+    except (cp.NoSectionError, cp.NoOptionError, KeyError):
+        return _CONFIG_DEFAULTS[name]["default"]
+
+
+def _read_str_config(name):
+    try:
+        return _config.get(_SECTION, name)
+    except (cp.NoSectionError, cp.NoOptionError, KeyError):
+        return _CONFIG_DEFAULTS[name]["default"]
