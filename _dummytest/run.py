@@ -1,6 +1,6 @@
 """Run tests."""
 
-from _errortest.collect import _collect_all_test_cases
+from _dummytest.collect import _collect_all_test_cases
 
 
 def _run_single_test(test_func):
