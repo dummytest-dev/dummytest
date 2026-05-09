@@ -24,7 +24,7 @@ def _run_single_test(test_func):
         return False, f"FAIL | {func_name} -> {type(e).__name__}"
 
 
-def _run_exception_test_suite():
+def _run_test_suite():
     print("Exception-Focused Test Suite Running...")
     test_cases = _collect_all_test_cases()
 

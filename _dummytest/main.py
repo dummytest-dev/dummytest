@@ -3,9 +3,9 @@
 
 import sys
 
-from .run import _run_exception_test_suite
+from .run import _run_test_suite
 
 
 def main():
-    _run_exception_test_suite()
+    _run_test_suite()
     sys.exit(0)
