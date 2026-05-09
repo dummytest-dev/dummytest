@@ -3,8 +3,6 @@
 import pathlib
 import configparser as cp
 
-from _dummytest.cli import _cli_parser
-
 
 _config = cp.ConfigParser()
 _CWD = pathlib.Path.cwd()
