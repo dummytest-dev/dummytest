@@ -3,7 +3,7 @@
 
 import sys
 
-from .config.config import _read_bool_config, init_config
+from .config.config import _read_bool_config, _read_str_config, init_config
 from .cli import _cli_parser
 from .run import _run_test_suite
 
@@ -17,6 +17,10 @@ def main():
     cli_no_color = args.no_color
     final_no_color = cli_no_color or config_no_color
 
+    config_test_dir = _read_str_config("test_dir")
+    
+    if not args.test_dir:
+        args.test_dir = config_test_dir
     args.no_color = final_no_color
     
     _run_test_suite(args)

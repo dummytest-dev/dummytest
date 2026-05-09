@@ -8,10 +8,11 @@ _config = cp.ConfigParser()
 _CWD = pathlib.Path.cwd()
 _DEFAULT_CONFIG_FILE = "errortest.ini"
 _SECTION = "section"
-_config.read(_CWD)
 
 _CONFIG_DEFAULTS = {
     "no_color": {"type": bool, "default": False},
+    "test_dir": {"type": str, "default": "tests"},
+    "test_file": {"type": str, "default": ""}
 }
 
 

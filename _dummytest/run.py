@@ -32,7 +32,7 @@ def _run_test_suite(args):
     else:
         print("\033[1;34mDummytest Test Suite Running...\033[0m")
 
-    test_cases = _collect_all_test_cases(args.test_dir)
+    test_cases = _collect_all_test_cases(args.test_target)
 
     total = len(test_cases)
     passed = 0
