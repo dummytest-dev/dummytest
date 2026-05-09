@@ -37,8 +37,13 @@ def _cli_parser():
     )
 
     parser.add_argument(
-        "--test-dir", "-t",
+        "--test-dir",
         help="Specify test directory (default: tests)"
+    )
+
+    parser.add_argument(
+        "--test-file",
+        help="Specify test file"
     )
 
     args = parser.parse_args()
@@ -48,5 +53,8 @@ def _cli_parser():
     
     if not args.test_dir:
         args.test_dir = "tests"
+    
+    if not args.test_file:
+        args.test_file = None
     
     return args
