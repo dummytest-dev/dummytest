@@ -49,7 +49,6 @@ def _run_test_suite(args):
 
         print(msg)
 
-        # 统计
         if ok:
             passed += 1
         else:
