@@ -7,7 +7,7 @@ import configparser as cp
 _config = cp.ConfigParser()
 _CWD = pathlib.Path.cwd()
 _DEFAULT_CONFIG_FILE = "errortest.ini"
-_SECTION = "section"
+_SECTION = "errortest"
 
 _CONFIG_DEFAULTS = {
     "no_color": {"type": bool, "default": False},
