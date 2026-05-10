@@ -16,14 +16,15 @@ def _collect_all_test_cases(test_dir_or_file):
     test_path = pathlib.Path(test_dir_or_file).resolve()
     all_tests = []
 
-    if str(test_path.parent) not in sys.path:
-        sys.path.insert(0, str(test_path.parent))
-
-
     if test_path.is_file():
         files = [test_path]
+        import_root = test_path.parent
     else:
         files = list(test_path.glob("test_*.py"))
+        import_root = test_path
+
+    if str(import_root) not in sys.path:
+        sys.path.insert(0, str(import_root))
 
     for file in files:
         module_name = file.stem

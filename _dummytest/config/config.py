@@ -26,14 +26,14 @@ def init_config(config_path=None):
 def _read_bool_config(name):
     try:
         return _config.getboolean(_SECTION, name)
-    except (cp.NoSectionError, cp.NoOptionError, KeyError):
+    except (cp.NoSectionError, cp.NoOptionError, ValueError, KeyError):
         return _CONFIG_DEFAULTS[name]["default"]
 
 
 def _read_int_config(name):
     try:
         return _config.getint(_SECTION, name)
-    except (cp.NoSectionError, cp.NoOptionError, KeyError):
+    except (cp.NoSectionError, cp.NoOptionError, ValueError, KeyError):
         return _CONFIG_DEFAULTS[name]["default"]
 
 

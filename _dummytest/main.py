@@ -13,16 +13,13 @@ def main():
 
     init_config(args.config)
 
-    config_no_color = _read_bool_config("no_color")
-    cli_no_color = args.no_color
-    final_no_color = cli_no_color or config_no_color
+    args.no_color = args.no_color or _read_bool_config("no_color")
 
-    config_test_dir = _read_str_config("test_dir")
-    
-    if not args.test_dir:
-        args.test_dir = config_test_dir
-    args.no_color = final_no_color
-    
+    test_file = args.test_file or _read_str_config("test_file")
+    test_dir = args.test_dir or _read_str_config("test_dir")
+
+    args.test_target = test_file if test_file else test_dir
+
     _run_test_suite(args)
 
     sys.exit(0)

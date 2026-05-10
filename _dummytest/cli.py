@@ -50,10 +50,5 @@ def _cli_parser():
 
     if not args.config:
         args.config = "errortest.ini"
-    
-    if args.test_file:
-        args.test_target = args.test_file
-    else:
-        args.test_target = args.test_dir if args.test_dir else "tests"
-    
+
     return args

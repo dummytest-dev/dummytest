@@ -1,7 +1,6 @@
 """Find test functions or classes."""
 
 import inspect
-import sys
 
 
 def _find_test_functions(module):

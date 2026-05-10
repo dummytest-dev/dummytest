@@ -1,25 +1,21 @@
 """Run tests."""
 
-from _dummytest.collect import _collect_all_test_cases
+from .collect import _collect_all_test_cases
 
 
 def _run_single_test(test_func):
     func_name = test_func.__qualname__
 
-    instance = None
-    if "." in func_name:
-        cls_name = func_name.split(".")[0]
-        cls = test_func.__globals__[cls_name]
-        instance = cls()
-
     try:
-        if instance is not None:
-            test_func(instance)
+        if "." in func_name:
+            cls_name = func_name.split(".")[0]
+            cls = test_func.__globals__[cls_name]
+            test_func(cls())
         else:
             test_func()
-            
+
         return True, f"PASS | {func_name}"
-        
+
     except Exception as e:
         return False, f"FAIL | {func_name} -> {type(e).__name__}"
 
