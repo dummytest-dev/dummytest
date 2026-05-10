@@ -1,4 +1,4 @@
-"""Const for errortest module."""
+"""Const for dummytest module."""
 
 
 class _PluggableState:

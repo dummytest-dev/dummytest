@@ -66,6 +66,6 @@ def _cli_parser():
     args = parser.parse_args()
 
     if not args.config:
-        args.config = "errortest.ini"
+        args.config = "dummytest.ini"
 
     return args

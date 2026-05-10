@@ -9,7 +9,7 @@ from .ignores import load_ignore_rules
 from .run import _run_inline, _run_test_suite
 
 
-_IGNORE_FILE = ".errortestignore"
+_IGNORE_FILE = ".dummytestignore"
 
 
 def main():

@@ -1,4 +1,4 @@
-"""Loader/matcher for ``.errortestignore``.
+"""Loader/matcher for ``.dummytestignore``.
 
 File format: one rule per line. Each rule is::
 
