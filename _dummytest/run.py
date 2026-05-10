@@ -2,6 +2,7 @@
 
 import traceback
 
+from .assertions import _Fail
 from .collect import _collect_all_test_cases
 
 
@@ -19,7 +20,8 @@ def _run_single_test(test_func):
         return True, f"PASS | {func_name}", None
 
     except Exception as e:
-        return False, f"FAIL | {func_name} -> {type(e).__name__}", traceback.format_exc()
+        reason = "fail by user" if isinstance(e, _Fail) else type(e).__name__
+        return False, f"FAIL | {func_name} -> {reason}", traceback.format_exc()
 
 
 def _run_test_suite(args):
