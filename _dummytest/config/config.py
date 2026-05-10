@@ -21,6 +21,8 @@ _CONFIG_DEFAULTS = {
 def init_config(config_path=None):
     if not config_path:
         config_path = _CWD / _DEFAULT_CONFIG_FILE
+    else:
+        config_path = _CWD / config_path
     _config.read(config_path)
 
 
