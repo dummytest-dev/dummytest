@@ -10,6 +10,7 @@ from .collect import _collect_all_test_cases
 from .explain import _explain_assertion
 from .ignores import is_ignored
 from .plugins import _install_plugins, _uninstall_plugins
+from .color import c as _c
 
 
 def _run_single_test(test_func):
@@ -57,23 +58,24 @@ def _print_banner(no_color):
     if no_color:
         print("Dummytest Test Suite Running...")
     else:
-        print("\033[1;34mDummytest Test Suite Running...\033[0m")
+        print(_c.bold_blue("Dummytest Test Suite Running..."))
 
 
-def _color(text, code, no_color):
+def _color_text(text, color_func, no_color):
     if no_color:
         return text
-    return f"\033[{code}m{text}\033[0m"
+    return color_func(text)
 
 
 def _print_result(status, label, tb, explain, no_color, verbose):
     if status == "pass":
-        label = _color(label, "32", no_color)
+        label = _color_text(label, _c.green, no_color)
     elif status == "fail":
-        label = _color(label, "31", no_color)
+        label = _color_text(label, _c.red, no_color)
     else:
-        label = _color(label, "33", no_color)
+        label = _color_text(label, _c.yellow, no_color)
     print(label)
+
     if status != "pass" and explain:
         print(explain)
     if status == "fail" and verbose and tb:
@@ -85,10 +87,11 @@ def _print_summary(total, passed, failed, ignored, no_color):
     if ignored:
         parts.append(f"Ignored: {ignored}")
     summary = "\n" + " | ".join(parts)
+
     if failed == 0:
-        summary = _color(summary, "1;32", no_color)
+        summary = _color_text(summary, _c.bold_green, no_color)
     else:
-        summary = _color(summary, "1;33", no_color)
+        summary = _color_text(summary, _c.bold_yellow, no_color)
     print(summary)
 
 
