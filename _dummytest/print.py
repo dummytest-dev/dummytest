@@ -1,6 +1,8 @@
 """Print functions for run.py."""
 
 
+import sys
+
 from .color import c as _c
 from .ignores import is_ignored
 
@@ -8,8 +10,10 @@ from .ignores import is_ignored
 def _print_banner(no_color):
     if no_color:
         print("Dummytest Test Suite Running...")
+        _print_setup(color=True)
     else:
         print(_c.bold_blue("Dummytest Test Suite Running..."))
+        _print_setup(color=False)
 
 
 def _color_text(text, color_func, no_color):
@@ -54,3 +58,8 @@ def _classify(result, ignore_rules):
         return "ignored", label
     return "fail", result["label"]
 
+
+def _print_setup(color):
+    ver = '.'.join(map(str, sys.version_info[:3]))
+    _s = f"platform: {sys.platform}, python {ver}"
+    print(_color_text(_s, _c.cyan, color))
