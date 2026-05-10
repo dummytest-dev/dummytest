@@ -1,5 +1,6 @@
 """Run tests."""
 
+import inspect
 import linecache
 import sys
 import traceback
@@ -7,11 +8,16 @@ import traceback
 from .assertions import _Fail
 from .collect import _collect_all_test_cases
 from .explain import _explain_assertion
+from .ignores import is_ignored
 from .plugins import _install_plugins, _uninstall_plugins
 
 
 def _run_single_test(test_func):
     func_name = test_func.__qualname__
+    try:
+        source_file = inspect.getsourcefile(test_func) or ""
+    except TypeError:
+        source_file = ""
 
     try:
         if "." in func_name:
@@ -21,14 +27,30 @@ def _run_single_test(test_func):
         else:
             test_func()
 
-        return True, f"PASS | {func_name}", None, None
+        return {
+            "ok": True,
+            "label": f"PASS | {func_name}",
+            "func_name": func_name,
+            "source_file": source_file,
+            "exc_name": None,
+            "tb": None,
+            "explain": None,
+        }
 
     except Exception as e:
         reason = "fail by user" if isinstance(e, _Fail) else type(e).__name__
         explain = None
         if isinstance(e, AssertionError) and not isinstance(e, _Fail):
             explain = _explain_assertion(sys.exc_info()[2])
-        return False, f"FAIL | {func_name} -> {reason}", traceback.format_exc(), explain
+        return {
+            "ok": False,
+            "label": f"FAIL | {func_name} -> {reason}",
+            "func_name": func_name,
+            "source_file": source_file,
+            "exc_name": type(e).__name__,
+            "tb": traceback.format_exc(),
+            "explain": explain,
+        }
 
 
 def _print_banner(no_color):
@@ -38,48 +60,75 @@ def _print_banner(no_color):
         print("\033[1;34mDummytest Test Suite Running...\033[0m")
 
 
-def _print_result(ok, msg, tb, explain, no_color, verbose):
-    if not no_color:
-        msg = f"\033[32m{msg}\033[0m" if ok else f"\033[31m{msg}\033[0m"
-    print(msg)
-    if not ok and explain:
+def _color(text, code, no_color):
+    if no_color:
+        return text
+    return f"\033[{code}m{text}\033[0m"
+
+
+def _print_result(status, label, tb, explain, no_color, verbose):
+    if status == "pass":
+        label = _color(label, "32", no_color)
+    elif status == "fail":
+        label = _color(label, "31", no_color)
+    else:
+        label = _color(label, "33", no_color)
+    print(label)
+    if status != "pass" and explain:
         print(explain)
-    if not ok and verbose and tb:
+    if status == "fail" and verbose and tb:
         print(tb, end="")
 
 
-def _print_summary(total, passed, failed, no_color):
-    summary = f"\nTotal: {total} | Passed: {passed} | Failed: {failed}"
-    if not no_color:
-        if failed == 0:
-            summary = f"\033[1;32m{summary}\033[0m"
-        else:
-            summary = f"\033[1;33m{summary}\033[0m"
+def _print_summary(total, passed, failed, ignored, no_color):
+    parts = [f"Total: {total}", f"Passed: {passed}", f"Failed: {failed}"]
+    if ignored:
+        parts.append(f"Ignored: {ignored}")
+    summary = "\n" + " | ".join(parts)
+    if failed == 0:
+        summary = _color(summary, "1;32", no_color)
+    else:
+        summary = _color(summary, "1;33", no_color)
     print(summary)
+
+
+def _classify(result, ignore_rules):
+    if result["ok"]:
+        return "pass", result["label"]
+    if is_ignored(ignore_rules, result["exc_name"], result["source_file"]):
+        label = f"IGNORED | {result['func_name']} -> {result['exc_name']}"
+        return "ignored", label
+    return "fail", result["label"]
 
 
 def _run_test_suite(args):
     _print_banner(args.no_color)
 
     test_cases = _collect_all_test_cases(args.test_target, args.test_pattern)
+    ignore_rules = getattr(args, "ignore_rules", []) or []
 
     total = len(test_cases)
     passed = 0
     failed = 0
+    ignored = 0
 
     _install_plugins()
     try:
         for case in test_cases:
-            ok, msg, tb, explain = _run_single_test(case)
-            _print_result(ok, msg, tb, explain, args.no_color, args.verbose)
-            if ok:
+            result = _run_single_test(case)
+            status, label = _classify(result, ignore_rules)
+            _print_result(status, label, result["tb"], result["explain"],
+                          args.no_color, args.verbose)
+            if status == "pass":
                 passed += 1
-            else:
+            elif status == "fail":
                 failed += 1
+            else:
+                ignored += 1
     finally:
         _uninstall_plugins()
 
-    _print_summary(total, passed, failed, args.no_color)
+    _print_summary(total, passed, failed, ignored, args.no_color)
 
 
 def _run_inline(args):
@@ -100,10 +149,20 @@ def _run_inline(args):
         exec(code, ns)
     _inline.__qualname__ = "<inline>"
 
+    ignore_rules = getattr(args, "ignore_rules", []) or []
+
     _install_plugins()
     try:
-        ok, msg, tb, explain = _run_single_test(_inline)
+        result = _run_single_test(_inline)
     finally:
         _uninstall_plugins()
-    _print_result(ok, msg, tb, explain, args.no_color, args.verbose)
-    _print_summary(1, 1 if ok else 0, 0 if ok else 1, args.no_color)
+
+    if not result["ok"]:
+        result["source_file"] = filename
+    status, label = _classify(result, ignore_rules)
+    _print_result(status, label, result["tb"], result["explain"],
+                  args.no_color, args.verbose)
+    passed = 1 if status == "pass" else 0
+    failed = 1 if status == "fail" else 0
+    ignored = 1 if status == "ignored" else 0
+    _print_summary(1, passed, failed, ignored, args.no_color)
