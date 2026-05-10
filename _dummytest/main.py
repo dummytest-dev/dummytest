@@ -14,11 +14,13 @@ def main():
     init_config(args.config)
 
     args.no_color = args.no_color or _read_bool_config("no_color")
+    args.verbose = args.verbose or _read_bool_config("verbose")
 
     test_file = args.test_file or _read_str_config("test_file")
     test_dir = args.test_dir or _read_str_config("test_dir")
 
     args.test_target = test_file if test_file else test_dir
+    args.test_pattern = args.test_pattern or _read_str_config("test_pattern")
 
     _run_test_suite(args)
 

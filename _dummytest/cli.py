@@ -37,6 +37,12 @@ def _cli_parser():
     )
 
     parser.add_argument(
+        "--verbose", "-v",
+        action="store_true",
+        help="Print full traceback for failing tests."
+    )
+
+    parser.add_argument(
         "--test-dir",
         help="Specify test directory (default: tests)"
     )
@@ -44,6 +50,11 @@ def _cli_parser():
     parser.add_argument(
         "--test-file",
         help="Specify test file"
+    )
+
+    parser.add_argument(
+        "--test-pattern",
+        help="Glob pattern for test files in --test-dir (default: test_*.py)"
     )
 
     args = parser.parse_args()

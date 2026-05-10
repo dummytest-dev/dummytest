@@ -11,8 +11,10 @@ _SECTION = "section"
 
 _CONFIG_DEFAULTS = {
     "no_color": {"type": bool, "default": False},
+    "verbose": {"type": bool, "default": False},
     "test_dir": {"type": str, "default": "tests"},
-    "test_file": {"type": str, "default": ""}
+    "test_file": {"type": str, "default": ""},
+    "test_pattern": {"type": str, "default": "test_*.py"}
 }
 
 

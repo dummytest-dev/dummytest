@@ -12,7 +12,7 @@ from .find import (
 )
 
 
-def _collect_all_test_cases(test_dir_or_file):
+def _collect_all_test_cases(test_dir_or_file, test_pattern="test_*.py"):
     test_path = pathlib.Path(test_dir_or_file).resolve()
     all_tests = []
 
@@ -20,7 +20,7 @@ def _collect_all_test_cases(test_dir_or_file):
         files = [test_path]
         import_root = test_path.parent
     else:
-        files = list(test_path.glob("test_*.py"))
+        files = list(test_path.glob(test_pattern))
         import_root = test_path
 
     if str(import_root) not in sys.path:
