@@ -1,9 +1,11 @@
 """Run tests."""
 
+import sys
 import traceback
 
 from .assertions import _Fail
 from .collect import _collect_all_test_cases
+from .explain import _explain_assertion
 
 
 def _run_single_test(test_func):
@@ -17,11 +19,14 @@ def _run_single_test(test_func):
         else:
             test_func()
 
-        return True, f"PASS | {func_name}", None
+        return True, f"PASS | {func_name}", None, None
 
     except Exception as e:
         reason = "fail by user" if isinstance(e, _Fail) else type(e).__name__
-        return False, f"FAIL | {func_name} -> {reason}", traceback.format_exc()
+        explain = None
+        if isinstance(e, AssertionError) and not isinstance(e, _Fail):
+            explain = _explain_assertion(sys.exc_info()[2])
+        return False, f"FAIL | {func_name} -> {reason}", traceback.format_exc(), explain
 
 
 def _run_test_suite(args):
@@ -40,7 +45,7 @@ def _run_test_suite(args):
     failed = 0
 
     for case in test_cases:
-        ok, msg, tb = _run_single_test(case)
+        ok, msg, tb, explain = _run_single_test(case)
 
         if not no_color:
             if ok:
@@ -49,6 +54,8 @@ def _run_test_suite(args):
                 msg = f"\033[31m{msg}\033[0m"
 
         print(msg)
+        if not ok and explain:
+            print(explain)
         if not ok and verbose and tb:
             print(tb, end="")
 
