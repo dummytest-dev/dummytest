@@ -6,6 +6,7 @@ from _dummytest._version import (__version__,
 from _dummytest.const import PLUGINABLE
 from _dummytest.assertions import _fail as fail
 from _dummytest.plugins import reveal_type, dump_locals, record_calls
+from _dummytest import asserts
 
 __all__ = [
     "__version__",
@@ -15,5 +16,6 @@ __all__ = [
     "fail",
     "reveal_type",
     "dump_locals",
-    "record_calls"
+    "record_calls",
+    "asserts"
 ]
