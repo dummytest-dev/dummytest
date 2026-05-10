@@ -5,7 +5,7 @@ import sys
 
 from .config.config import _read_bool_config, _read_str_config, init_config
 from .cli import _cli_parser
-from .run import _run_test_suite
+from .run import _run_inline, _run_test_suite
 
 
 def main():
@@ -15,6 +15,10 @@ def main():
 
     args.no_color = args.no_color or _read_bool_config("no_color")
     args.verbose = args.verbose or _read_bool_config("verbose")
+
+    if args.expr:
+        _run_inline(args)
+        sys.exit(0)
 
     test_file = args.test_file or _read_str_config("test_file")
     test_dir = args.test_dir or _read_str_config("test_dir")

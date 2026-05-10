@@ -57,6 +57,12 @@ def _cli_parser():
         help="Glob pattern for test files in --test-dir (default: test_*.py)"
     )
 
+    parser.add_argument(
+        "expr",
+        nargs="?",
+        help="Inline Python statement(s) to run as a single test, e.g. 'assert 1+1==2'."
+    )
+
     args = parser.parse_args()
 
     if not args.config:
