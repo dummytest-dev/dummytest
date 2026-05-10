@@ -7,6 +7,7 @@ import traceback
 from .assertions import _Fail
 from .collect import _collect_all_test_cases
 from .explain import _explain_assertion
+from .plugins import _install_plugins, _uninstall_plugins
 
 
 def _run_single_test(test_func):
@@ -66,13 +67,17 @@ def _run_test_suite(args):
     passed = 0
     failed = 0
 
-    for case in test_cases:
-        ok, msg, tb, explain = _run_single_test(case)
-        _print_result(ok, msg, tb, explain, args.no_color, args.verbose)
-        if ok:
-            passed += 1
-        else:
-            failed += 1
+    _install_plugins()
+    try:
+        for case in test_cases:
+            ok, msg, tb, explain = _run_single_test(case)
+            _print_result(ok, msg, tb, explain, args.no_color, args.verbose)
+            if ok:
+                passed += 1
+            else:
+                failed += 1
+    finally:
+        _uninstall_plugins()
 
     _print_summary(total, passed, failed, args.no_color)
 
@@ -95,6 +100,10 @@ def _run_inline(args):
         exec(code, ns)
     _inline.__qualname__ = "<inline>"
 
-    ok, msg, tb, explain = _run_single_test(_inline)
+    _install_plugins()
+    try:
+        ok, msg, tb, explain = _run_single_test(_inline)
+    finally:
+        _uninstall_plugins()
     _print_result(ok, msg, tb, explain, args.no_color, args.verbose)
     _print_summary(1, 1 if ok else 0, 0 if ok else 1, args.no_color)
