@@ -20,6 +20,7 @@ _UNICODE = _supports_unicode()
 _PASS_SYMBOL = "✓" if _UNICODE else "+"
 _FAIL_SYMBOL = "✗" if _UNICODE else "x"
 _IGNORE_SYMBOL = "⚠" if _UNICODE else "!"
+_WARN_SYMBOL = "⚠" if _UNICODE else "!"
 _SEPARATOR = "─" if _UNICODE else "-"
 
 
@@ -77,6 +78,18 @@ def _print_failure_detail(result, no_color):
         print(loc)
     if explain:
         print(explain)
+
+
+def _print_warnings(caught_warnings, no_color):
+    if not caught_warnings:
+        return
+    header = _color_text(f"\n{_WARN_SYMBOL} Warnings ({len(caught_warnings)}):", _c.yellow, no_color)
+    print(header)
+    for w in caught_warnings:
+        loc = f"{w.filename}:{w.lineno}"
+        msg = f"  {w.category.__name__}: {w.message}"
+        print(_color_text(f"    {loc}", _c.cyan, no_color))
+        print(_color_text(msg, _c.yellow, no_color))
 
 
 def _print_summary(total, passed, failed, ignored, no_color, failures=None, verbose=False, elapsed=None):

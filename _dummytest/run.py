@@ -5,8 +5,9 @@ import linecache
 import sys
 import time
 import traceback
+import warnings
 
-from .print import _classify, _print_banner, _print_result, _print_summary
+from .print import _classify, _print_banner, _print_result, _print_summary, _print_warnings
 from .assertions import _Fail
 from .collect import _collect_all_test_cases
 from .explain import _explain_assertion
@@ -20,38 +21,42 @@ def _run_single_test(test_func):
     except TypeError:
         source_file = ""
 
-    try:
-        if "." in func_name:
-            cls_name = func_name.split(".")[0]
-            cls = test_func.__globals__[cls_name]
-            test_func(cls())
-        else:
-            test_func()
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        try:
+            if "." in func_name:
+                cls_name = func_name.split(".")[0]
+                cls = test_func.__globals__[cls_name]
+                test_func(cls())
+            else:
+                test_func()
 
-        return {
-            "ok": True,
-            "label": f"PASS | {func_name}",
-            "func_name": func_name,
-            "source_file": source_file,
-            "exc_name": None,
-            "tb": None,
-            "explain": None,
-        }
+            return {
+                "ok": True,
+                "label": f"PASS | {func_name}",
+                "func_name": func_name,
+                "source_file": source_file,
+                "exc_name": None,
+                "tb": None,
+                "explain": None,
+                "warnings": caught,
+            }
 
-    except Exception as e:
-        reason = "fail by user" if isinstance(e, _Fail) else type(e).__name__
-        explain = None
-        if isinstance(e, AssertionError) and not isinstance(e, _Fail):
-            explain = _explain_assertion(sys.exc_info()[2])
-        return {
-            "ok": False,
-            "label": f"FAIL | {func_name} -> {reason}",
-            "func_name": func_name,
-            "source_file": source_file,
-            "exc_name": type(e).__name__,
-            "tb": traceback.format_exc(),
-            "explain": explain,
-        }
+        except Exception as e:
+            reason = "fail by user" if isinstance(e, _Fail) else type(e).__name__
+            explain = None
+            if isinstance(e, AssertionError) and not isinstance(e, _Fail):
+                explain = _explain_assertion(sys.exc_info()[2])
+            return {
+                "ok": False,
+                "label": f"FAIL | {func_name} -> {reason}",
+                "func_name": func_name,
+                "source_file": source_file,
+                "exc_name": type(e).__name__,
+                "tb": traceback.format_exc(),
+                "explain": explain,
+                "warnings": caught,
+            }
 
 
 def _run_test_suite(args):
@@ -66,11 +71,13 @@ def _run_test_suite(args):
     failed = 0
     ignored = 0
     failures = []
+    all_warnings = []
 
     _install_plugins()
     try:
         for i, case in enumerate(test_cases, 1):
             result = _run_single_test(case)
+            all_warnings.extend(result["warnings"])
             status, label = _classify(result, ignore_rules)
             _print_result(status, label, result["tb"], result["explain"],
                           args.no_color, args.verbose, index=i, total=total)
@@ -85,6 +92,7 @@ def _run_test_suite(args):
         _uninstall_plugins()
 
     elapsed = time.perf_counter() - start
+    _print_warnings(all_warnings, args.no_color)
     _print_summary(total, passed, failed, ignored, args.no_color, failures=failures, verbose=args.verbose, elapsed=elapsed)
 
 
@@ -125,4 +133,5 @@ def _run_inline(args):
     ignored = 1 if status == "ignored" else 0
     failures = [result] if status == "fail" else []
     elapsed = time.perf_counter() - start
+    _print_warnings(result["warnings"], args.no_color)
     _print_summary(1, passed, failed, ignored, args.no_color, failures=failures, verbose=args.verbose, elapsed=elapsed)
