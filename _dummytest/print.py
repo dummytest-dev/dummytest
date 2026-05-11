@@ -79,7 +79,7 @@ def _print_failure_detail(result, no_color):
         print(explain)
 
 
-def _print_summary(total, passed, failed, ignored, no_color, failures=None, verbose=False):
+def _print_summary(total, passed, failed, ignored, no_color, failures=None, verbose=False, elapsed=None):
     line = _SEPARATOR * 50
     print(_color_text(line, _c.intense_black, no_color))
 
@@ -92,6 +92,8 @@ def _print_summary(total, passed, failed, ignored, no_color, failures=None, verb
     parts = [f"Total: {total}", f"Passed: {passed}", f"Failed: {failed}"]
     if ignored:
         parts.append(f"Ignored: {ignored}")
+    if elapsed is not None:
+        parts.append(f"in {elapsed:.2f}s")
     summary = " | ".join(parts)
 
     if failed == 0:

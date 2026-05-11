@@ -3,6 +3,7 @@
 import inspect
 import linecache
 import sys
+import time
 import traceback
 
 from .print import _classify, _print_banner, _print_result, _print_summary
@@ -55,6 +56,7 @@ def _run_single_test(test_func):
 
 def _run_test_suite(args):
     _print_banner(args.no_color)
+    start = time.perf_counter()
 
     test_cases = _collect_all_test_cases(args.test_target, args.test_pattern)
     ignore_rules = getattr(args, "ignore_rules", []) or []
@@ -82,11 +84,13 @@ def _run_test_suite(args):
     finally:
         _uninstall_plugins()
 
-    _print_summary(total, passed, failed, ignored, args.no_color, failures=failures, verbose=args.verbose)
+    elapsed = time.perf_counter() - start
+    _print_summary(total, passed, failed, ignored, args.no_color, failures=failures, verbose=args.verbose, elapsed=elapsed)
 
 
 def _run_inline(args):
     _print_banner(args.no_color)
+    start = time.perf_counter()
 
     src = args.expr
     if not src.endswith("\n"):
@@ -120,4 +124,5 @@ def _run_inline(args):
     failed = 1 if status == "fail" else 0
     ignored = 1 if status == "ignored" else 0
     failures = [result] if status == "fail" else []
-    _print_summary(1, passed, failed, ignored, args.no_color, failures=failures, verbose=args.verbose)
+    elapsed = time.perf_counter() - start
+    _print_summary(1, passed, failed, ignored, args.no_color, failures=failures, verbose=args.verbose, elapsed=elapsed)
