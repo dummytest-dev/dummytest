@@ -5,6 +5,7 @@ import sys
 
 from .color import c as _c
 from .ignores import is_ignored
+from ._version import __version__
 
 
 def _print_banner(no_color):
@@ -61,5 +62,5 @@ def _classify(result, ignore_rules):
 
 def _print_setup(color):
     ver = '.'.join(map(str, sys.version_info[:3]))
-    _s = f"platform: {sys.platform}, python {ver}"
+    _s = f"platform: {sys.platform}, python {ver}, dummytest {__version__}"
     print(_color_text(_s, _c.cyan, color))
