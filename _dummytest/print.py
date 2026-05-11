@@ -8,13 +8,33 @@ from .ignores import is_ignored
 from ._version import __version__
 
 
+def _supports_unicode():
+    try:
+        "✓".encode(sys.stdout.encoding or "ascii")
+        return True
+    except (UnicodeEncodeError, LookupError):
+        return False
+
+
+_UNICODE = _supports_unicode()
+_PASS_SYMBOL = "✓" if _UNICODE else "+"
+_FAIL_SYMBOL = "✗" if _UNICODE else "x"
+_IGNORE_SYMBOL = "⚠" if _UNICODE else "!"
+_SEPARATOR = "─" if _UNICODE else "-"
+
+
 def _print_banner(no_color):
+    line = _SEPARATOR * 50
     if no_color:
+        print(line)
         print("Dummytest Test Suite Running...")
         _print_setup(color=True)
+        print(line)
     else:
+        print(_c.intense_black(line))
         print(_c.bold_blue("Dummytest Test Suite Running..."))
         _print_setup(color=False)
+        print(_c.intense_black(line))
 
 
 def _color_text(text, color_func, no_color):
@@ -23,14 +43,21 @@ def _color_text(text, color_func, no_color):
     return color_func(text)
 
 
-def _print_result(status, label, tb, explain, no_color, verbose):
+def _print_result(status, label, tb, explain, no_color, verbose, index=None, total=None):
+    progress = ""
+    if index is not None and total is not None:
+        progress = f"[{index}/{total}] "
+
     if status == "pass":
-        label = _color_text(label, _c.green, no_color)
+        symbol = _PASS_SYMBOL
+        line = _color_text(f"  {symbol} {progress}{label}", _c.green, no_color)
     elif status == "fail":
-        label = _color_text(label, _c.red, no_color)
+        symbol = _FAIL_SYMBOL
+        line = _color_text(f"  {symbol} {progress}{label}", _c.red, no_color)
     else:
-        label = _color_text(label, _c.yellow, no_color)
-    print(label)
+        symbol = _IGNORE_SYMBOL
+        line = _color_text(f"  {symbol} {progress}{label}", _c.yellow, no_color)
+    print(line)
 
     if status != "pass" and explain:
         print(explain)
@@ -38,26 +65,50 @@ def _print_result(status, label, tb, explain, no_color, verbose):
         print(tb, end="")
 
 
-def _print_summary(total, passed, failed, ignored, no_color):
+def _print_failure_detail(result, no_color):
+    source = result.get("source_file", "")
+    func = result.get("func_name", "")
+    explain = result.get("explain")
+
+    header = _color_text(f"  {_FAIL_SYMBOL} FAILED: {func}", _c.bold_red, no_color)
+    print(header)
+    if source:
+        loc = _color_text(f"    File: {source}", _c.cyan, no_color)
+        print(loc)
+    if explain:
+        print(explain)
+
+
+def _print_summary(total, passed, failed, ignored, no_color, failures=None, verbose=False):
+    line = _SEPARATOR * 50
+    print(_color_text(line, _c.intense_black, no_color))
+
+    if verbose and failures:
+        print(_color_text("\nFailures:", _c.bold_red, no_color))
+        for result in failures:
+            _print_failure_detail(result, no_color)
+        print()
+
     parts = [f"Total: {total}", f"Passed: {passed}", f"Failed: {failed}"]
     if ignored:
         parts.append(f"Ignored: {ignored}")
-    summary = "\n" + " | ".join(parts)
+    summary = " | ".join(parts)
 
     if failed == 0:
-        summary = _color_text(summary, _c.bold_green, no_color)
+        symbol = _PASS_SYMBOL
+        summary = _color_text(f"{symbol} {summary}", _c.bold_green, no_color)
     else:
-        summary = _color_text(summary, _c.bold_yellow, no_color)
+        symbol = _FAIL_SYMBOL
+        summary = _color_text(f"{symbol} {summary}", _c.bold_red, no_color)
     print(summary)
 
 
 def _classify(result, ignore_rules):
     if result["ok"]:
-        return "pass", result["label"]
+        return "pass", result["func_name"]
     if is_ignored(ignore_rules, result["exc_name"], result["source_file"]):
-        label = f"IGNORED | {result['func_name']} -> {result['exc_name']}"
-        return "ignored", label
-    return "fail", result["label"]
+        return "ignored", f"{result['func_name']} -> {result['exc_name']}"
+    return "fail", f"{result['func_name']} -> {result['exc_name']}"
 
 
 def _print_setup(color):

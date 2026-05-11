@@ -63,24 +63,26 @@ def _run_test_suite(args):
     passed = 0
     failed = 0
     ignored = 0
+    failures = []
 
     _install_plugins()
     try:
-        for case in test_cases:
+        for i, case in enumerate(test_cases, 1):
             result = _run_single_test(case)
             status, label = _classify(result, ignore_rules)
             _print_result(status, label, result["tb"], result["explain"],
-                          args.no_color, args.verbose)
+                          args.no_color, args.verbose, index=i, total=total)
             if status == "pass":
                 passed += 1
             elif status == "fail":
                 failed += 1
+                failures.append(result)
             else:
                 ignored += 1
     finally:
         _uninstall_plugins()
 
-    _print_summary(total, passed, failed, ignored, args.no_color)
+    _print_summary(total, passed, failed, ignored, args.no_color, failures=failures, verbose=args.verbose)
 
 
 def _run_inline(args):
@@ -113,8 +115,9 @@ def _run_inline(args):
         result["source_file"] = filename
     status, label = _classify(result, ignore_rules)
     _print_result(status, label, result["tb"], result["explain"],
-                  args.no_color, args.verbose)
+                  args.no_color, args.verbose, index=1, total=1)
     passed = 1 if status == "pass" else 0
     failed = 1 if status == "fail" else 0
     ignored = 1 if status == "ignored" else 0
-    _print_summary(1, passed, failed, ignored, args.no_color)
+    failures = [result] if status == "fail" else []
+    _print_summary(1, passed, failed, ignored, args.no_color, failures=failures, verbose=args.verbose)
