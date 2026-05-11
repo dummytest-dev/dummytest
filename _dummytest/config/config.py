@@ -1,4 +1,4 @@
-"""Read config files."""
+"""Read ini config files."""
 
 import pathlib
 import configparser as cp
