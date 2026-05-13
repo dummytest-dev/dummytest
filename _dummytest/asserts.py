@@ -52,10 +52,10 @@ def assert_raises(exc_type, func=None, *args, **kwargs):
     class _RaisesContext:
         def __enter__(self):
             return self
-        def __exit__(self, exc, exctype, tb):
-            if exc is None:
+        def __exit__(self, exc_tp, exc_val, tb):
+            if exc_tp is None:
                 raise AssertionError(f"Expected exception {exc_type}")
-            if not isinstance(exc, exc_type):
+            if not issubclass(exc_tp, exc_type):
                 return False
             return True
     if func is None:
