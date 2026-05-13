@@ -1,4 +1,28 @@
-"""Fixture system for dummytest."""
+"""Fixture system for dummytest.
+
+Provides a pytest-like fixture mechanism with dependency injection,
+scoped caching, and yield-based teardown.
+
+Usage::
+
+    import dummytest
+
+    @dummytest.fixture
+    def db_connection():
+        conn = create_connection()
+        yield conn
+        conn.close()
+
+    @dummytest.fixture(scope="session")
+    def app_config():
+        return load_config()
+
+    def test_query(db_connection):
+        result = db_connection.execute("SELECT 1")
+        assert result is not None
+
+Built-in fixtures: ``tmp_path``, ``capsys``, ``monkeypatch``.
+"""
 
 import inspect
 import io
@@ -10,6 +34,8 @@ import tempfile
 
 
 class FixtureDef:
+    """Metadata for a single registered fixture."""
+
     __slots__ = ("func", "name", "scope", "is_generator")
 
     def __init__(self, func, scope="function"):
@@ -20,6 +46,7 @@ class FixtureDef:
 
 
 class FixtureRegistry:
+    """Central registry that stores, resolves, and caches fixtures."""
 
     def __init__(self):
         self._fixtures = {}
@@ -30,12 +57,14 @@ class FixtureRegistry:
         self._current_module = None
 
     def register(self, func, scope="function"):
+        """Register a callable as a fixture and return it unchanged."""
         fdef = FixtureDef(func, scope)
         self._fixtures[fdef.name] = fdef
         func._dummytest_fixture = True
         return func
 
     def resolve_params(self, param_names):
+        """Resolve a list of parameter names to ``(kwargs, teardowns)``."""
         kwargs = {}
         teardowns = []
         for name in param_names:
@@ -98,6 +127,7 @@ class FixtureRegistry:
             return value, teardown
 
     def start_session(self):
+        """Clear all caches. Call once before the test loop."""
         self._session_cache.clear()
         self._module_cache.clear()
         self._session_teardowns.clear()
@@ -105,6 +135,7 @@ class FixtureRegistry:
         self._current_module = None
 
     def set_module(self, module_name):
+        """Track current module; teardown module-scoped fixtures on change."""
         if module_name != self._current_module:
             self._teardown_module()
             self._current_module = module_name
@@ -119,6 +150,7 @@ class FixtureRegistry:
         self._module_teardowns.clear()
 
     def teardown_session(self):
+        """Teardown all module and session-scoped fixtures."""
         self._teardown_module()
         for td in reversed(self._session_teardowns):
             try:
@@ -133,6 +165,22 @@ _registry = FixtureRegistry()
 
 
 def fixture(func=None, *, scope="function"):
+    """Mark a function as a dummytest fixture.
+
+    Can be used with or without parentheses::
+
+        @dummytest.fixture
+        def my_fixture():
+            return 42
+
+        @dummytest.fixture(scope="session")
+        def shared_resource():
+            r = acquire()
+            yield r
+            release(r)
+
+    Scopes: ``"function"`` (default), ``"module"``, ``"session"``.
+    """
     if func is not None:
         return _registry.register(func, scope="function")
 
@@ -145,17 +193,21 @@ def fixture(func=None, *, scope="function"):
 
 @fixture
 def tmp_path():
+    """Provide a temporary directory as a ``pathlib.Path``, removed after the test."""
     d = pathlib.Path(tempfile.mkdtemp())
     yield d
     shutil.rmtree(d, ignore_errors=True)
 
 
 class _CaptureResult:
+    """Captured stdout/stderr returned by the ``capsys`` fixture."""
+
     def __init__(self):
         self._out = io.StringIO()
         self._err = io.StringIO()
 
     def readouterr(self):
+        """Return ``(out, err)`` strings and reset the capture buffers."""
         out = self._out.getvalue()
         err = self._err.getvalue()
         self._out.truncate(0)
@@ -167,6 +219,10 @@ class _CaptureResult:
 
 @fixture
 def capsys():
+    """Capture writes to ``sys.stdout`` and ``sys.stderr``.
+
+    Use ``capsys.readouterr()`` to get ``(out, err)`` strings.
+    """
     cap = _CaptureResult()
     old_out, old_err = sys.stdout, sys.stderr
     sys.stdout, sys.stderr = cap._out, cap._err
@@ -175,10 +231,13 @@ def capsys():
 
 
 class _MonkeyPatch:
+    """Patch objects, dicts, and environment variables for the duration of a test."""
+
     def __init__(self):
         self._undos = []
 
     def setattr(self, obj, name, value):
+        """Set an attribute on *obj*, restored after the test."""
         old = getattr(obj, name, _NOTSET)
         if old is _NOTSET:
             self._undos.append(lambda: delattr(obj, name))
@@ -187,11 +246,13 @@ class _MonkeyPatch:
         setattr(obj, name, value)
 
     def delattr(self, obj, name):
+        """Delete an attribute on *obj*, restored after the test."""
         old = getattr(obj, name)
         self._undos.append(lambda: setattr(obj, name, old))
         delattr(obj, name)
 
     def setenv(self, name, value):
+        """Set an environment variable, restored after the test."""
         old = os.environ.get(name, _NOTSET)
         if old is _NOTSET:
             self._undos.append(lambda: os.environ.pop(name, None))
@@ -200,6 +261,7 @@ class _MonkeyPatch:
         os.environ[name] = value
 
     def delenv(self, name, raising=True):
+        """Delete an environment variable, restored after the test."""
         old = os.environ.get(name, _NOTSET)
         if old is _NOTSET:
             if raising:
@@ -209,6 +271,7 @@ class _MonkeyPatch:
         del os.environ[name]
 
     def undo(self):
+        """Revert all patches in reverse order."""
         for fn in reversed(self._undos):
             fn()
         self._undos.clear()
@@ -219,6 +282,10 @@ _NOTSET = object()
 
 @fixture
 def monkeypatch():
+    """Patch objects, dicts, and environment variables for the duration of a test.
+
+    Methods: ``setattr``, ``delattr``, ``setenv``, ``delenv``.
+    """
     mp = _MonkeyPatch()
     yield mp
     mp.undo()
