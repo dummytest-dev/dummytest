@@ -1,0 +1,2 @@
+# Ignore rules for dummytest
+# Format: ExceptionName[file-glob]
