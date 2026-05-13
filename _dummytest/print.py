@@ -130,3 +130,16 @@ def _print_setup(color):
     ver = '.'.join(map(str, sys.version_info[:3]))
     _s = f"platform: {sys.platform}, python {ver}, dummytest {__version__}"
     print(_color_text(_s, _c.cyan, color))
+
+    import pathlib
+    cwd = pathlib.Path.cwd()
+    found = []
+    if (cwd / "dummytest.ini").is_file():
+        found.append("dummytest.ini")
+    if (cwd / "pyproject.toml").is_file():
+        found.append("pyproject.toml")
+    if (cwd / ".dummytestignore").is_file():
+        found.append(".dummytestignore")
+    if found:
+        cfg_line = f"config files: {', '.join(found)}"
+        print(_color_text(cfg_line, _c.cyan, color))
