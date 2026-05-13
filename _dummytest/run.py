@@ -11,6 +11,7 @@ from .print import _classify, _print_banner, _print_result, _print_summary, _pri
 from .assertions import _Fail
 from .collect import _collect_all_test_cases
 from .explain import _explain_assertion
+from .fixtures import _registry
 from .plugins import _install_plugins, _uninstall_plugins
 
 
@@ -21,15 +22,30 @@ def _run_single_test(test_func):
     except TypeError:
         source_file = ""
 
+    teardowns = []
     with warnings.catch_warnings(record=True) as caught:
         warnings.simplefilter("always")
         try:
             if "." in func_name:
                 cls_name = func_name.split(".")[0]
                 cls = test_func.__globals__[cls_name]
-                test_func(cls())
+                instance = cls()
+                params = [
+                    p for p in inspect.signature(test_func).parameters
+                    if p != "self"
+                ]
+                if params:
+                    kwargs, teardowns = _registry.resolve_params(params)
+                    test_func(instance, **kwargs)
+                else:
+                    test_func(instance)
             else:
-                test_func()
+                params = list(inspect.signature(test_func).parameters.keys())
+                if params:
+                    kwargs, teardowns = _registry.resolve_params(params)
+                    test_func(**kwargs)
+                else:
+                    test_func()
 
             return {
                 "ok": True,
@@ -57,6 +73,12 @@ def _run_single_test(test_func):
                 "explain": explain,
                 "warnings": caught,
             }
+        finally:
+            for td in reversed(teardowns):
+                try:
+                    td()
+                except Exception:
+                    pass
 
 
 def _run_test_suite(args):
@@ -74,8 +96,10 @@ def _run_test_suite(args):
     all_warnings = []
 
     _install_plugins()
+    _registry.start_session()
     try:
         for i, case in enumerate(test_cases, 1):
+            _registry.set_module(getattr(case, "__module__", None))
             result = _run_single_test(case)
             all_warnings.extend(result["warnings"])
             status, label = _classify(result, ignore_rules)
@@ -89,6 +113,7 @@ def _run_test_suite(args):
             else:
                 ignored += 1
     finally:
+        _registry.teardown_session()
         _uninstall_plugins()
 
     elapsed = time.perf_counter() - start
