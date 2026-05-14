@@ -1,8 +1,6 @@
 """Assertion helpers for dummytest."""
 
-
-class _Fail(AssertionError):
-    """Raised by `_fail` to mark a test as explicitly failed."""
+from .exceptions import _Fail
 
 
 def _fail(msg=None):

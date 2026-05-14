@@ -15,77 +15,93 @@ Usage::
         int("not a number")
 """
 
+from .exceptions import (
+    EqualAssertionError,
+    NotEqualAssertionError,
+    TrueAssertionError,
+    FalseAssertionError,
+    IdentityAssertionError,
+    NotIdentityAssertionError,
+    NoneAssertionError,
+    NotNoneAssertionError,
+    InAssertionError,
+    NotInAssertionError,
+    IsInstanceAssertionError,
+    NotIsInstanceAssertionError,
+    RaisesAssertionError,
+)
+
 
 def assert_equal(a, b, msg=None):
     """Assert ``a == b``."""
     if a != b:
-        raise AssertionError(msg or f"{a} != {b}")
+        raise EqualAssertionError(msg or f"{a} != {b}")
 
 
 def assert_not_equal(a, b, msg=None):
     """Assert ``a != b``."""
     if a == b:
-        raise AssertionError(msg or f"{a} == {b}")
+        raise NotEqualAssertionError(msg or f"{a} == {b}")
 
 
 def assert_true(expr, msg=None):
     """Assert ``bool(expr)`` is ``True``."""
     if not expr:
-        raise AssertionError(msg or "Expected True")
+        raise TrueAssertionError(msg or "Expected True")
 
 
 def assert_false(expr, msg=None):
     """Assert ``bool(expr)`` is ``False``."""
     if expr:
-        raise AssertionError(msg or "Expected False")
+        raise FalseAssertionError(msg or "Expected False")
 
 
 def assert_is(a, b, msg=None):
     """Assert ``a is b``."""
     if a is not b:
-        raise AssertionError(msg or f"{a} is not {b}")
+        raise IdentityAssertionError(msg or f"{a} is not {b}")
 
 
 def assert_is_not(a, b, msg=None):
     """Assert ``a is not b``."""
     if a is b:
-        raise AssertionError(msg or f"{a} is {b}")
+        raise NotIdentityAssertionError(msg or f"{a} is {b}")
 
 
 def assert_is_none(expr, msg=None):
     """Assert ``expr is None``."""
     if expr is not None:
-        raise AssertionError(msg or "Expected None")
+        raise NoneAssertionError(msg or "Expected None")
 
 
 def assert_is_not_none(expr, msg=None):
     """Assert ``expr is not None``."""
     if expr is None:
-        raise AssertionError(msg or "Expected not None")
+        raise NotNoneAssertionError(msg or "Expected not None")
 
 
 def assert_in(item, container, msg=None):
     """Assert ``item in container``."""
     if item not in container:
-        raise AssertionError(msg or f"{item} not in {container}")
+        raise InAssertionError(msg or f"{item} not in {container}")
 
 
 def assert_not_in(item, container, msg=None):
     """Assert ``item not in container``."""
     if item in container:
-        raise AssertionError(msg or f"{item} in {container}")
+        raise NotInAssertionError(msg or f"{item} in {container}")
 
 
 def assert_is_instance(obj, cls, msg=None):
     """Assert ``isinstance(obj, cls)``."""
     if not isinstance(obj, cls):
-        raise AssertionError(msg or f"{obj} is not instance of {cls}")
+        raise IsInstanceAssertionError(msg or f"{obj} is not instance of {cls}")
 
 
 def assert_not_is_instance(obj, cls, msg=None):
     """Assert ``not isinstance(obj, cls)``."""
     if isinstance(obj, cls):
-        raise AssertionError(msg or f"{obj} is instance of {cls}")
+        raise NotIsInstanceAssertionError(msg or f"{obj} is instance of {cls}")
 
 
 def assert_raises(exc_type, func=None, *args, **kwargs):
@@ -103,7 +119,7 @@ def assert_raises(exc_type, func=None, *args, **kwargs):
             return self
         def __exit__(self, exc_tp, exc_val, tb):
             if exc_tp is None:
-                raise AssertionError(f"Expected exception {exc_type}")
+                raise RaisesAssertionError(f"Expected exception {exc_type}")
             if not issubclass(exc_tp, exc_type):
                 return False
             return True
@@ -113,4 +129,4 @@ def assert_raises(exc_type, func=None, *args, **kwargs):
         func(*args, **kwargs)
     except exc_type:
         return
-    raise AssertionError(f"Expected exception {exc_type}")
+    raise RaisesAssertionError(f"Expected exception {exc_type}")
