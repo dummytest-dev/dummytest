@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dummytest"
+version = "0.0.1-pre10"
+description = "Plugins, fixtures, workflows, unit and functional tests with Python."
+requires-python = ">=3.11"
+license = "MIT"
+
+[project.scripts]
+dummytest = "_dummytest.main:main"
+
+[tool.setuptools.packages.find]
+include = ["dummytest*", "_dummytest*"]
+
