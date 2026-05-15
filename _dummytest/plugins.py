@@ -22,6 +22,7 @@ import functools
 import sys
 
 from .const import _set_pluggable
+from .color import c as _c
 
 
 def reveal_type(value):
@@ -31,7 +32,7 @@ def reveal_type(value):
     statically inferred type at type-check time, this reports the runtime type
     while tests are executing.
     """
-    print(f"reveal_type | {type(value).__name__} = {value!r}")
+    print(_c.bold_blue(f"reveal_type | {type(value).__name__} = {value!r}"))
     return value
 
 
@@ -39,7 +40,7 @@ def dump_locals():
     """Print the caller's local variables, one per line."""
     frame = sys._getframe(1)
     qualname = getattr(frame.f_code, "co_qualname", frame.f_code.co_name)
-    print(f"dump_locals | {qualname}")
+    print(_c.bold_blue(f"dump_locals | {qualname}"))
     for name, val in frame.f_locals.items():
         if name.startswith("__"):
             continue
@@ -57,9 +58,9 @@ def record_calls(func):
         try:
             result = func(*args, **kwargs)
         except Exception as e:
-            print(f"record_calls | {func.__name__}({argstr}) raised {type(e).__name__}")
+            print(_c.bold_blue(f"record_calls | {func.__name__}({argstr}) raised {type(e).__name__}"))
             raise
-        print(f"record_calls | {func.__name__}({argstr}) -> {result!r}")
+        print(_c.bold_blue(f"record_calls | {func.__name__}({argstr}) -> {result!r}"))
         return result
     return wrapper
 
