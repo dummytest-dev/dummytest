@@ -8,6 +8,7 @@ version = "0.0.1-beta1"
 description = "Plugins, fixtures, workflows, unit and functional tests with Python."
 requires-python = ">=3.11"
 license = "MIT"
+readme = "README.md"
 
 [project.scripts]
 dummytest = "_dummytest.main:main"
