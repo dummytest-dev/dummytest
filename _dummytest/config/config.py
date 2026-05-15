@@ -14,7 +14,8 @@ _CONFIG_DEFAULTS = {
     "verbose": {"type": bool, "default": False},
     "test_dir": {"type": str, "default": "tests"},
     "test_file": {"type": str, "default": ""},
-    "test_pattern": {"type": str, "default": "test_*.py"}
+    "test_pattern": {"type": str, "default": "test_*.py"},
+    "quiet": {"type": bool, "default": False}
 }
 
 
