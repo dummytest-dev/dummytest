@@ -8,12 +8,14 @@ from .config.toml import _read_toml_config, _init_toml_config
 from .cli import _cli_parser
 from .ignores import load_ignore_rules
 from .run import _run_inline, _run_test_suite
+from .warnings import _check_version_warnings
 
 
 _IGNORE_FILE = ".dummytestignore"
 
 
 def main():
+    _check_version_warnings()
     args = _cli_parser()
 
     init_config(args.config)
