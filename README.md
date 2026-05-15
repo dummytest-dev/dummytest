@@ -5,7 +5,7 @@ Plugins, fixtures, workflows, unit and functional tests with Python.
 ## Install
 
 ```bash
-pip install dummytest
+pip install the-dummy
 ```
 
 ## Usage
