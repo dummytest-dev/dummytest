@@ -23,6 +23,7 @@ def main():
 
     args.no_color = args.no_color or _read_bool_config("no_color") or _read_toml_config("no_color")
     args.verbose = args.verbose or _read_bool_config("verbose") or _read_toml_config("verbose")
+    args.quiet = args.quiet or _read_bool_config("quiet") or _read_toml_config("quiet")
     args.ignore_rules = load_ignore_rules(_IGNORE_FILE)
 
     if args.expr:

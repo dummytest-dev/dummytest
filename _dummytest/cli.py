@@ -43,6 +43,12 @@ def _cli_parser():
     )
 
     parser.add_argument(
+        "--quiet", "-q",
+        action="store_true",
+        help="Minimal output. Only print summary and failures."
+    )
+
+    parser.add_argument(
         "--test-dir",
         help="Specify test directory (default: tests)"
     )
